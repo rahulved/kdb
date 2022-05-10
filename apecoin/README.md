@@ -40,6 +40,7 @@ Run zookeeper and kafka (change directory to wherever the files are unzipped)<br
 
 
 <h3>2. Libraries</h3>
+<h4>librdkafka</h4>
 <p>
 You'll need to build librdkafka from source<br/>
 https://github.com/edenhill/librdkafka<br/>
@@ -60,11 +61,15 @@ make clean  # to make sure nothing left from previous build or if upgrading/rebu
 make
 make install
 ```
+
 <br/>
 make install will install files in $HOME/lib and $HOME/include<br/>
 </p>
+<h4>kx's kafka library</h4>
 <p>
+
 You'll need to build kx's kfk library<br/>
+
 ```
 export QHOME=.......
 #for now set KAFKA_HOME to $HOME so make can pick up librdkafka from the previous build
@@ -73,6 +78,8 @@ git clone https://github.com/KxSystems/kafka.git
 make
 make install
 ```
+
+<br/>
 </p>
 
 
