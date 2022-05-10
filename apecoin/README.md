@@ -81,6 +81,37 @@ make install
 
 <br/>
 </p>
+<h3>3. Node.js set up</h3>
+
+<p>
+If you don't have node you'll need to download it<br/>
+
+```
+# Using Ubuntu
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+<br/>
+</p>
+<p>
+Create a project directory<br/>
+
+```
+mkdir dev
+cd dev
+git clone https://github.com/rahulved/kdb.git
+cd kdb/apecoin
+npm init
+npm install web3
+npm install net
+npm install node-rdkafka
+node apecoin.js
+$QHOME/l64/q apecoin_consumer.q
+```
+
+<br/>
+</p>
 
 
 
