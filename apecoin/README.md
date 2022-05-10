@@ -24,24 +24,26 @@ https://github.com/KxSystems/kafka#building-and-installation
 <h3>1. Setting up Zookeeper and Kafka</h3>
 
 <p>
-Download and install zookeeper from here:
+Download and install zookeeper from here:<br/>
 https://zookeeper.apache.org/releases.html
 </p>
 <p>
-Download and install kafka from here
+Download and install kafka from here:<br/>
 https://kafka.apache.org/downloads
 </p>
 <p>
-Run zookeeper and kafka (change directory to wherever the files are unzipped)
+Run zookeeper and kafka (change directory to wherever the files are unzipped)<br/>
 
-~/apps/zookeeper/latest/bin$<b> ./zkServer.sh start ../../../kafka/latest/config/zookeeper.properties</b>
-~/apps/kafka/latest$<b> bin/kafka-server-start.sh config/server.properties</b>
+~/apps/zookeeper/latest/bin$<b> ./zkServer.sh start ../../../kafka/latest/config/zookeeper.properties</b><br/>
+~/apps/kafka/latest$<b> bin/kafka-server-start.sh config/server.properties</b><br/>
+</p>
 
 
 <h3>2. Libraries</h3>
 <p>
-You'll need to build librdkafka from source
-https://github.com/edenhill/librdkafka
+You'll need to build librdkafka from source<br/>
+https://github.com/edenhill/librdkafka<br/>
+
 ```
 git clone https://github.com/edenhill/librdkafka.git
 cd librdkafka
@@ -58,11 +60,11 @@ make clean  # to make sure nothing left from previous build or if upgrading/rebu
 make
 make install
 ```
-
-make install will install files in $HOME/lib and $HOME/include
+<br/>
+make install will install files in $HOME/lib and $HOME/include<br/>
 </p>
 <p>
-You'll need to build kx's kfk library
+You'll need to build kx's kfk library<br/>
 ```
 export QHOME=.......
 #for now set KAFKA_HOME to $HOME so make can pick up librdkafka from the previous build
