@@ -1,0 +1,20 @@
+quote:([]
+    time:"p"$();
+    sym:`g#"s"$();  
+    qtime:"p"$();  
+    bid:"f"$();
+    ask:"f"$();
+    bidsize:"j"$();
+    asksize:"j"$();
+    bids:();
+    asks:();
+    bidsizes:();
+    asksizes:());
+
+trade:([]
+    time:"p"$();
+    sym:`g#"s"$();
+    ttime:"p"$();
+    side:"s"$();
+    px:"f"$();
+    qty:"f"$());

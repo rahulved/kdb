@@ -1,0 +1,51 @@
+{
+    "_cq":{
+        "logdir":"/home/rahul/dev/kdb/test/mytick/logs",
+        "logprefix":"log_",
+        "logrollinterval":"12:00:00",
+        "loglevel":"INFO,WARN,ERROR,FATAL"
+    },
+    "fh1":{
+        "host":"localhost",
+        "port":5001,
+        "init":"publisher.q",
+        "fhconfig":{}
+    },
+    "tp1":{
+        "host":"localhost",
+        "port":5010,
+        "init":"mytick.q",        
+        "tpconfig":{
+            "schemafile":"schema.q",
+            "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
+            "tplogprefix":"tplog_",
+            "tplogrollinterval":"02:00:00"
+        }
+    },
+    "tp2":{
+        "host":"localhost",
+        "port":5010,
+        "init":"mytick.q",        
+        "tpconfig":{
+            "schemafile":"schema.q",
+            "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
+            "tplogprefix":"tplog_",
+            "tplogrollinterval":"02:00:00"
+        }
+    },    
+    "rdb1":{
+        "host":"localhost",
+        "port":5011,
+        "init":"myrdb.q",
+        "rdbconfig":{
+            "dataduration":"10:00:00.000",
+            "subs":[{"tp":"tp1", "grp":0, "priority":0, "tbls":["trade", "quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":0, "priority":1, "tbls":["trade", "quote"], "syms":["a","b","c"]},
+                    {"tp":"tp1", "grp":1, "priority":0, "tbls":["quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":1, "priority":1, "tbls":["quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":1, "priority":2, "tbls":["quote"], "syms":[""]}
+
+                ]
+        }
+    }    
+}
