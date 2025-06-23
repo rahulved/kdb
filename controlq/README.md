@@ -31,7 +31,7 @@ _cq is reserved for control-q configuration:
 
  For other processes:
 
- **tickerplant: **
+ ** tickerplant: **
 
 ```
  "<tp process name, e.g., tp1>": {
@@ -46,7 +46,7 @@ _cq is reserved for control-q configuration:
     }
  }
 ```
- **rdb: **
+ ** rdb: **
 An rdb can subscribe to multiple tickerplants. All tp's must be configured in cqconfig.json.
 For each distinct group, specified as grp in subs below, the rdb will initially subscribe to the tickerplant with the lowest priority value. If that tickerplant disconnects, it will then attempt to the tickerplant with the next lowest priority value. If all fail, it will pick the one with the earliest failure time.
 
@@ -66,6 +66,6 @@ For each distinct group, specified as grp in subs below, the rdb will initially 
     }      
  }
  ```
- 
+
 
 
