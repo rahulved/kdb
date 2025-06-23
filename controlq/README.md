@@ -10,25 +10,30 @@ Set up all processes in this json file. You can specify another json file using 
 
 Each element in cqconfig.json is a process except for _cq. Each process should have the following keys:
 
+```
 <processname>: {
         "host":"localhost",
         "port":5001,
         "init":"somefile.q"
 }
+```
 
 _cq is reserved for control-q configuration: 
 
+```
 "_cq": {
         "logdir":"<directory for logs>",
         "logprefix":"log_",
         "logrollinterval":"12:00:00",
         "loglevel":"SILENT,DEBUG,INFO,WARN,ERROR,FATAL"
  }
+```
 
  For other processes:
 
  **tickerplant: **
 
+```
  "<tp process name, e.g., tp1>": {
     "host":...,
     "port":...,
@@ -40,12 +45,12 @@ _cq is reserved for control-q configuration:
         "tplogrollinterval":"02:00:00"
     }
  }
-
+```
  **rdb: **
 An rdb can subscribe to multiple tickerplants. All tp's must be configured in cqconfig.json.
 For each distinct group, specified as grp in subs below, the rdb will initially subscribe to the tickerplant with the lowest priority value. If that tickerplant disconnects, it will then attempt to the tickerplant with the next lowest priority value. If all fail, it will pick the one with the earliest failure time.
 
-
+```
  "<rdb process name, e.g., rdb1>": {
     "host":...,
     "port":...,
@@ -60,5 +65,7 @@ For each distinct group, specified as grp in subs below, the rdb will initially 
             ]
     }      
  }
+ ```
+ 
 
 
