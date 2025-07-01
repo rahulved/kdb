@@ -1,9 +1,3 @@
-system "l cqcommon.q";
-
-.cq.instance:`tp1;
-
-
-
 /system "l schema.q";
 system "e 1";
 system "c 200 200";
@@ -13,11 +7,13 @@ system "c 200 200";
 .u.tplogRollInterval:`timespan$12:00:00;
 
 .u.schemafilePath:"schema.q";
+
 .cq.processConf:{[conf]
     if [not `tpconfig in key conf; 
         WARN "No tpconfig found in config.json. Using default values";
         :()
     ];
+    INFO "Processing tpconfig";
     tpconf:conf`tpconfig;
     if [`schemafile in key tpconf; .u.schemafilePath:tpconf`schemafile];
     if [`tplogdir in key tpconf; .u.tplogDir:tpconf`tplogdir];
@@ -31,7 +27,16 @@ system "c 200 200";
     system "l ",.u.schemafilePath;
  };
 
-.cq.init[];
+system "l cqcommon.q";
+
+/.cq.instance:`tp1;
+
+
+
+
+
+
+/.cq.init[];
 
 .u.ticktbls:tables`;
 .u.schemadict:.u.ticktbls!{select[0] from x} each .u.ticktbls;
@@ -135,7 +140,20 @@ system "c 200 200";
 /.z.ts:{
 /    @[.u.checkTpLogfile;`;{'"Error checking tplog file: ",x}];
 / };
-.tm.addTimer[`.u.checkTpLogfile;enlist `; `timespan$00:00:02];
 
+
+
+
+.u.backlog:([handle:`int$()] time:(); bytes:());
+
+.u.checkBacklog:{
+    newBacklog:{([handle:key x]; time2:count[value x]#enlist .z.p; bytes2:enlist each value x)} sum each .z.W;
+    keeplast:{(0|(count each x)-5)_'x};
+    .u.backlog:1!select handle, time:keeplast (time,'time2), bytes:keeplast (bytes,'bytes2) from (.u.backlog,'newBacklog) where handle in exec handle from .u.subs;
+    /TBC - Actual monitoring - also check ss -m to check tcp buffer
+ };
+
+.tm.addTimer[`.u.checkTpLogfile;enlist `; `timespan$00:00:02];
+.tm.addTimer[`.u.checkBacklog;enlist `; `timespan$00:00:04];
 
 

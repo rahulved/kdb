@@ -1,20 +1,24 @@
 {
-    "_cq":{
+    "cqagent":{
         "logdir":"/home/rahul/dev/kdb/test/mytick/logs",
         "logprefix":"log_",
         "logrollinterval":"12:00:00",
-        "loglevel":"INFO,WARN,ERROR,FATAL"
+        "loglevel":"INFO,WARN,ERROR,FATAL",        
+        "qexec":"${QHOME}/q.sh",
+        "cloptions":""
     },
     "fh1":{
         "host":"localhost",
-        "port":5001,
-        "init":"publisher.q",
+        "port":5003,
+        "init":"testpublisher.q",
+        "cloptions":"",
         "fhconfig":{}
     },
     "tp1":{
         "host":"localhost",
         "port":5010,
-        "init":"mytick.q",        
+        "init":"cqtick.q",  
+        "cloptions":"",      
         "tpconfig":{
             "schemafile":"schema.q",
             "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
@@ -25,7 +29,8 @@
     "tp2":{
         "host":"localhost",
         "port":5010,
-        "init":"mytick.q",        
+        "init":"cqtick.q",  
+        "cloptions":"",      
         "tpconfig":{
             "schemafile":"schema.q",
             "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
@@ -36,7 +41,9 @@
     "rdb1":{
         "host":"localhost",
         "port":5011,
-        "init":"myrdb.q",
+        "init":"cqrdb.q",
+        "cloptions":"",
+        "dependson":["tp1","tp2"],
         "rdbconfig":{
             "dataduration":"10:00:00.000",
             "subs":[{"tp":"tp1", "grp":0, "priority":0, "tbls":["trade", "quote"], "syms":[""]},

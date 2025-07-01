@@ -4,33 +4,44 @@ system "l log4q.q";
 
 system "l cqtimer.q";
 
+.cq.myport:system "p";
+/ Instance name and agent port are command line options
+/-------------------------------------------------------------------------
+.cq.clopts:.Q.opt .z.x;
+if [not `instance in key .cq.clopts; '"Instance not specified in command line (-instance <instance name>)"];
+.cq.instance:first `$.cq.clopts`instance;
+if [not `agentport in key .cq.clopts; '"Agent port not specified in command line (-agentport <port>)"];
+.cq.agentport:first "I"$.cq.clopts`agentport;
 
-.cq.init:{    
+
+.cq.init:{  
+    INFO ".cq.init called";  
     configPath:"cqconfig.json";
     args:.Q.opt .z.x;
     if [`configpath in key args; if [0<count args`configpath; configPath:args`configpath]];
     .cq.allconf:@[read0;hsym `$configPath;{'"Unable to find ",configPath," - ",x}];
     .cq.allconf:@[.j.k; raze .cq.allconf;{'"Unable to parse ",configPath," - ",x}];
+    .cq.allconf[;`port]:`int$.cq.allconf[;`port];
+
+    /Agent host and port
+    .cq.allconf[`cqagent;`host]:":";
+    .cq.allconf[`cqagent;`port]:.cq.agentport;
+
     .cq.initLogging[.cq.allconf];
     .cq.conf:.cq.allconf[.cq.instance];
     .cq.processConf[.cq.conf];
+    .cq.hopen[`cqagent;1b;.cq.instanceregister]
  };
 
-/ These two will be overridden in the specific q script for each instance
-/-------------------------------------------------------------------------
-.cq.instance:`;
 
-.cq.processConf:{[c]
-  };
-/-------------------------------------------------------------------------
 
 .cq.initLogging:{[conf]
     .cq.logDir:".";
     .cq.logPrefix:"";
     .cq.logRollInterval:"24:00:00";
     .cq.logLevel:"INFO,WARN,ERROR,FATAL"; /`INFO`WARN`ERROR`FATAL;
-    if [(`$"_cq") in key conf;
-        cqConf:conf`$"_cq";
+    if [`cqagent in key conf;
+        cqConf:conf`cqagent;
         confKeys:`logdir`logprefix`logrollinterval`loglevel;
         wherePresent:where key[cqConf] in confKeys;
         dkeys:`logDir`logPrefix`logRollInterval`logLevel;
@@ -98,12 +109,14 @@ system "l cqtimer.q";
     h
  };
 
-.cq.hclose:{[ins]
-    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[x]];
+.cq.hclose:{[ins]    
+    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[x]];    
     th:.cq.hconns[ins];
     h:th`handle;
+    if [ins=`cqagent; '".cq.hclose - cannot close cqagent connection. Close handle,",string[th`handle]," directly instead if required"];
     delete from `.cq.hconns where instance=ins;
-    if [not null th`handle; @[hclose; h; {[ins;h;e] ERROR "Error closing connection to [",string[ins],"], handle [",string[h],"- ",e}[ins;h]]];
+    if [h>0; @[hclose; h; {[ins;h;e] ERROR "Error closing connection to [",string[ins],"], handle [",string[h],"- ",e}[ins;h]]];
+    INFO "Disconnected from [",string[ins],"]";
  };
 
 .cq.h:{[ins]
@@ -123,12 +136,47 @@ system "l cqtimer.q";
 .tm.addTimer[`.cq.attemptReconnect; enlist `; 2000];
 
 .cq.pc:{[h] };
-
+.cq.agenth:0Ni;
 .z.pc:{[h]    
     update handle:0Ni, isconnected:0b, disconnecttime:.z.p from `.cq.hconns where handle=h;
+    if [h=.cq.agenth; .cq.agenth:0Ni];
+
     /delete from `.cq.hconns where handle=h;
     .cq.pc[h];
  };
 
 
 
+.cq.instanceregister:{[ins;h]
+    INFO "Sending instance register to agent on handle ", string[h];
+    .cq.agenth:h;
+    neg[h] (`.cq.agentregister;.cq.instance;.z.i;.z.h;system "p"; .z.p);
+    .tm.addTimer[`.cq.instanceheartbeat; enlist `; `timespan$00:00:05];
+  };
+
+.cq.instanceheartbeat:{
+    if [not null .cq.agenth; neg[.cq.agenth] (`.cq.agentheartbeat;.cq.instance;.z.p)];
+ };
+
+
+.cq.shutdown:{
+    INFO "Shutting down instance ",string[.cq.instance];    
+    h:.cq.agenth^.z.w;
+    INFO "Sending shutdown ack on handle ", string[h];
+    if [not null h; h (`.cq.shutdownAck;.cq.instance;.z.p)];
+    INFO "Closing all connections";    
+    {@[hclose;x;{[x;e] ERROR "Error closing connection to [",string[x],"] - ",e}[x]]} each exec distinct handle from .cq.hconns where handle>0;        
+    /.cq.hclose each key .cq.hconns;
+    INFO "Exiting...";
+    /.tm.addTimer[`exit;enlist 0;.z.p+00:00:01];
+    exit[0];
+ };
+
+if [.cq.instance<>`cqagent;
+    INFO "Calling .cq.init for instance ",string[.cq.instance];
+    .cq.init[]
+ ];
+
+.z.exit:{
+    INFO "Received exit signal";
+ };

@@ -1,6 +1,6 @@
 .tm.granularityms:1000;
 
-.tm.timers:([] id:`long$();fn:`$(); arglist:(); freq:(); lastrun:`timestamp$(); nextrun:`timestamp$(); roundruntime:`boolean$(); lastrunduration:`timespan$(); lasterror:());
+.tm.timers:([] id:`long$(); name:`$(); fn:`$(); arglist:(); freq:(); lastrun:`timestamp$(); nextrun:`timestamp$(); roundruntime:`boolean$(); lastrunduration:`timespan$(); lasterror:());
 
 .tm.id:0;
 
@@ -13,11 +13,14 @@
 .tm.addTimerRoundRuntime:{[fn;arglist;freq]
     .tm.addTimerHelper[fn;arglist;freq;1b]
  };
- 
+.tm.addTimerOnce:{[fn;arglist;nextruntime]
+    .tm.id+:1;
+    `tm.timers upsert (.tm.id;`;fn;(),arglist;0Nn;0Np;nextruntime;0b;0Nn;enlist "");
+ };
 .tm.addTimerHelper:{[fn;arglist;freq; roundruntime]
     .tm.id+:1;
     freq:`timespan$freq;
-    `.tm.timers upsert (.tm.id;fn;(),arglist;freq;0Np;.tm.getNextRunTime[freq;roundruntime];roundruntime;0Nn; enlist "");
+    `.tm.timers upsert (.tm.id;`;fn;(),arglist;freq;0Np;.tm.getNextRunTime[freq;roundruntime];roundruntime;0Nn; enlist "");
     .tm.id
  };
 
@@ -35,7 +38,8 @@
     st:.z.p;
     @[.[tm`fn;]; tm`arglist; .tm.handleError[tm;]];    
     et:.z.p;
-    update nextrun:.tm.getNextRunTime[tm`freq;tm`roundruntime], lastrunduration:et-st from `.tm.timers where id=tm`id;
+    $[null tm`freq; delete from `.tm.timers where id=tm`id;  /delete or update? keep record for logkeeping?
+        update nextrun:.tm.getNextRunTime[tm`freq;tm`roundruntime], lastrunduration:et-st from `.tm.timers where id=tm`id];
   };
 
 .tm.handleError:{[tm;err]

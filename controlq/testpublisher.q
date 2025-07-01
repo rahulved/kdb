@@ -1,9 +1,6 @@
-system "l cqcommon.q";
-
-.cq.instance:`fh1;
 .cq.processConf:{[conf]
  };
-.cq.init[];
+system "l cqcommon.q";
 
 pubintervalms:1000;
 

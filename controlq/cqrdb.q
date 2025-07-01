@@ -1,11 +1,4 @@
-system "l cqcommon.q";
-
-/ Temporary instead of upd:insert to be able to debug
-upd:{[t;d] t insert d};
-
-.cq.instance:`rdb1;
-
- .cq.processConf:{[c]
+.cq.processConf:{[c]
     conf:c`rdbconfig;
     if [0=count conf; '"No rdbconfig found for instance [",.cq.instance,"]"];
     subs:update `$tp, `int$priority, `$tbls, `$syms from conf[`subs];
@@ -18,6 +11,15 @@ upd:{[t;d] t insert d};
     if [0<count badConns; '"Bad connections found in config - ",(.Q.s1 badConns`tp)];
     .r.dataDuration:@["N"$;conf[`dataduration];{0N!x; '"Error reading dataDuration from config - ",x}];
   };
+
+system "l cqcommon.q";
+
+/ Temporary instead of upd:insert to be able to debug
+upd:{[t;d] t insert d};
+
+.cq.instance:`rdb1;
+
+
 
 
 .r.failures:([] grp:`int$(); startTime:`datetime$(); endTime:`datetime$());
@@ -76,7 +78,7 @@ upd:{[t;d] t insert d};
 
 
 
-.cq.init[];
+/.cq.init[];
 
 .r.openTpConns[];
 

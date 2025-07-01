@@ -8,7 +8,7 @@ A process control, tickerplant and rdb framework.
 
 Set up all processes in this json file. You can specify another json file using the '--configpath'  flag on the command line
 
-Each element in cqconfig.json is a process except for _cq. Each process should have the following keys:
+Each element in cqconfig.json is a process except for cq. Each process should have the following keys:
 
 ```
 <processname>: {
@@ -18,10 +18,10 @@ Each element in cqconfig.json is a process except for _cq. Each process should h
 }
 ```
 
-_cq is reserved for control-q configuration: 
+cq is reserved for control-q configuration: 
 
 ```
-"_cq": {
+"cq": {
         "logdir":"<directory for logs>",
         "logprefix":"log_",
         "logrollinterval":"12:00:00",
@@ -47,6 +47,7 @@ _cq is reserved for control-q configuration:
  }
 ```
 **rdb:**
+
 An rdb can subscribe to multiple tickerplants. All tp's must be configured in cqconfig.json.
 For each distinct group, specified as grp in subs below, the rdb will initially subscribe to the tickerplant with the lowest priority value. If that tickerplant disconnects, it will then attempt to the tickerplant with the next lowest priority value. If all fail, it will pick the one with the earliest failure time.
 
@@ -59,9 +60,9 @@ For each distinct group, specified as grp in subs below, the rdb will initially 
         "dataduration":"10:00:00.000", > how long to keep data in the rdb
         "subs":[{"tp":"tp1", "grp":0, "priority":0, "tbls":["trade", "quote"], "syms":["a,b,c"]}, > subscribe to tables trade and quote for symbols a, b and c from tp1
                 {"tp":"tp2", "grp":0, "priority":1, "tbls":["trade", "quote"], "syms":["a,b,c"]}, > subscribe to tables trade and quote for symbols a, b and c from tp2 (failover, tp1 is primary)
-                {"tp":"tp1", "grp":1, "priority":0, "tbls":["quote"], "syms":[""]}, > subscribe to table quote for all symbols from tp1 (primary)
-                {"tp":"tp2", "grp":1, "priority":1, "tbls":["quote"], "syms":[""]}, > subscribe to table quote for all symbols from tp2 (failover, tp1 is primary)
-                {"tp":"tp3", "grp":1, "priority":2, "tbls":["quote"], "syms":[""]}  > subscribe to table quote for all symbols from tp3 (failover if both tp1 and tp2 disconnect)
+                {"tp":"tp1", "grp":1, "priority":0, "tbls":["order", "execution"], "syms":[""]}, > subscribe to table quote for all symbols from tp1 (primary)
+                {"tp":"tp2", "grp":1, "priority":1, "tbls":["order", "execution"], "syms":[""]}, > subscribe to table quote for all symbols from tp2 (failover, tp1 is primary)
+                {"tp":"tp3", "grp":1, "priority":2, "tbls":["order", "execution"], "syms":[""]}  > subscribe to table quote for all symbols from tp3 (failover if both tp1 and tp2 disconnect)
             ]
     }      
  }
