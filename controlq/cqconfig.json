@@ -42,8 +42,7 @@
         "host":"localhost",
         "port":5011,
         "init":"cqrdb.q",
-        "cloptions":"",
-        "dependson":["tp1","tp2"],
+        "cloptions":"",        
         "rdbconfig":{
             "dataduration":"10:00:00.000",
             "subs":[{"tp":"tp1", "grp":0, "priority":0, "tbls":["trade", "quote"], "syms":[""]},

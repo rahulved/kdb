@@ -18,10 +18,10 @@ Each element in cqconfig.json is a process except for cq. Each process should ha
 }
 ```
 
-cq is reserved for control-q configuration: 
+cqagent is reserved for control-q configuration: 
 
 ```
-"cq": {
+"cqagent": {
         "logdir":"<directory for logs>",
         "logprefix":"log_",
         "logrollinterval":"12:00:00",
@@ -30,6 +30,8 @@ cq is reserved for control-q configuration:
 ```
 
  For other processes:
+
+
 
 **tickerplant:**
 
@@ -67,6 +69,25 @@ For each distinct group, specified as grp in subs below, the rdb will initially 
     }      
  }
  ```
+
+### 2. Start the processes
+
+First start cqagent.q
+
+```
+q cqagent.q -p 5002 -instance cqagent -agentport 5002
+```
+
+From within the agent, start/stop the processes:
+
+```
+.cq.startInstance[`tp1]
+.cq.stopInstance[`tp1]
+
+.cq.instances
+....
+
+```
 
 
 
