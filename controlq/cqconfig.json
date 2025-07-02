@@ -28,7 +28,7 @@
     },
     "tp2":{
         "host":"localhost",
-        "port":5010,
+        "port":6010,
         "init":"cqtick.q",  
         "cloptions":"",      
         "tpconfig":{
@@ -53,5 +53,33 @@
 
                 ]
         }
-    }    
+    },
+    "rdb2":{
+        "host":"localhost",
+        "port":6011,
+        "init":"cqrdb.q",
+        "cloptions":"",        
+        "rdbconfig":{
+            "dataduration":"10:00:00.000",
+            "subs":[{"tp":"tp1", "grp":0, "priority":0, "tbls":["trade", "quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":0, "priority":1, "tbls":["trade", "quote"], "syms":["a","b","c"]},
+                    {"tp":"tp1", "grp":1, "priority":0, "tbls":["quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":1, "priority":1, "tbls":["quote"], "syms":[""]},
+                    {"tp":"tp2", "grp":1, "priority":2, "tbls":["quote"], "syms":[""]}
+
+                ]
+        }
+    },
+    "rdbgateway":{
+        "host":"localhost",
+        "port":7011,
+        "init":"cqgateway.q",
+        "cloptions":"",
+        "gwconfig":{
+            "instancegroups":{
+                "rdb":["rdb1", "rdb2"],
+                "rdb1":["rdb1"]
+            }
+        }
+    }       
 }

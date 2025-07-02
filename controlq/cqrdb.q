@@ -1,6 +1,6 @@
 .cq.processConf:{[c]
-    conf:c`rdbconfig;
-    if [0=count conf; '"No rdbconfig found for instance [",.cq.instance,"]"];
+    if [not `rdbconfig in key c; '"No rdbconfig found for instance [",string[.cq.instance],"]"];
+    conf:c`rdbconfig;    
     subs:update `$tp, `int$priority, `$tbls, `$syms from conf[`subs];
     .r.subs:distinct select tp, grp, priority, tbl:tbls, sym:syms from subs; /(count each tbls)#'enlist each syms from subs;
     .r.subs:distinct flip `tp`grp`priority`tbl`sym!flip raze (flip value exec tp, grp, priority from .r.subs),/:'(.r.subs[`tbl] cross' .r.subs[`sym]);
@@ -16,11 +16,6 @@ system "l cqcommon.q";
 
 / Temporary instead of upd:insert to be able to debug
 upd:{[t;d] t insert d};
-
-.cq.instance:`rdb1;
-
-
-
 
 .r.failures:([] grp:`int$(); startTime:`datetime$(); endTime:`datetime$());
 

@@ -30,7 +30,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     .cq.initLogging[.cq.allconf];
     .cq.conf:.cq.allconf[.cq.instance];
     .cq.processConf[.cq.conf];
-    .cq.hopen[`cqagent;1b;.cq.instanceregister]
+    .cq.asynchopen[`cqagent;1b;`.cq.instanceregister]
  };
 
 
@@ -84,7 +84,18 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
 /keepopen - if true, then try reconnecting if the connection is lost
 /onopen - alled each time the connection is opened
 
+/async hopen will return a null handle if the connection is not successful and continue trying to open the connection. Once connected onopen will be called
+.cq.asynconopen:{[kop;onop;ins;h]
+    update keepopen:kop, onopen:onop from `.cq.hconns where instance=ins; 
+    if [not null onop; .[eval onop;(ins;h);{[ins;e] '"Error calling onopen(2) for instance ",string[ins]," - ",e}[ins]]];
+ };
 
+.cq.asynchopen:{[ins;keepopen; onopen]
+    /  in this call set keepopen to true. This will be set to whatever the caller requested initially once the connection is established the first time.
+    .[.cq.hopen;(ins;1b;.cq.asynconopen[keepopen;onopen]); {[ins;e] ERROR "Error opening connection to [",string[ins],"] - ",e; 0Ni}[ins]]
+ };
+
+/ sync hopen returns handle if successful or error otherwise
 .cq.hopen:{[ins; keepopen; onopen]    
     th:.cq.hconns[ins];
     if [not null th`handle; :th`handle];
@@ -105,7 +116,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     INFO "Connected to [",string[ins],"]@[",string[url],"]";
     h@(`.cq.registerHandle;.cq.instance);
     update handle:h, isconnected:1b, disconnecttime:0Np from `.cq.hconns where instance=ins;
-    if [not null th`onopen; .[th`onopen;(ins;h);{[ins;e] ERROR "Error calling onopen for instance ",string[ins]," - ",e}[ins]]];
+    if [not null th`onopen; .[eval th`onopen;(ins;h);{[ins;e] '"Error calling onopen for instance ",string[ins]," - ",e}[ins]]];
     h
  };
 
@@ -146,16 +157,18 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 
+.cq.pid:0Ni;
 
 .cq.instanceregister:{[ins;h]
     INFO "Sending instance register to agent on handle ", string[h];
     .cq.agenth:h;
-    neg[h] (`.cq.agentregister;.cq.instance;.z.i;.z.h;system "p"; .z.p);
+    .cq.pid:.z.i;
+    neg[h] (`.cq.agentregister;.cq.instance;.cq.pid;.z.h;system "p"; .z.p);
     .tm.addTimer[`.cq.instanceheartbeat; enlist `; `timespan$00:00:05];
   };
 
 .cq.instanceheartbeat:{
-    if [not null .cq.agenth; neg[.cq.agenth] (`.cq.agentheartbeat;.cq.instance;.z.p)];
+    if [not null .cq.agenth; neg[.cq.agenth] (`.cq.agentheartbeat;.cq.instance;.z.p;.cq.pid)];
  };
 
 

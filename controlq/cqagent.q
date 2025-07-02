@@ -121,9 +121,9 @@ system "e 1";
   update pid:pd, host:hst, port:prt, handle:.z.w, registertime:.z.p, lagtime:lag from `.cq.instances where instance=ins;
  };
 
-.cq.agentheartbeat:{[ins;ts]
+.cq.agentheartbeat:{[ins;ts;pd]
   lag:.z.p-ts;
-  update lastheartbeat:.z.p, handle:.z.w, lagtime:lag from `.cq.instances where instance=ins;
+  update lastheartbeat:.z.p, handle:.z.w, pid:pd, lagtime:lag from `.cq.instances where instance=ins;
   };
 
 
