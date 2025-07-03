@@ -12,7 +12,9 @@
         "port":5003,
         "init":"testpublisher.q",
         "cloptions":"",
-        "fhconfig":{}
+        "fhconfig":{
+            "tps":["tp1","tp2"]
+        }
     },
     "tp1":{
         "host":"localhost",
@@ -22,8 +24,8 @@
         "tpconfig":{
             "schemafile":"schema.q",
             "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
-            "tplogprefix":"tplog_",
-            "tplogrollinterval":"02:00:00"
+            "tplogprefix":"tplog",
+            "tplogrollinterval":"00:30:00"
         }
     },
     "tp2":{
@@ -34,8 +36,8 @@
         "tpconfig":{
             "schemafile":"schema.q",
             "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
-            "tplogprefix":"tplog_",
-            "tplogrollinterval":"02:00:00"
+            "tplogprefix":"tplog",
+            "tplogrollinterval":"00:30:00"
         }
     },    
     "rdb1":{
@@ -81,5 +83,18 @@
                 "rdb1":["rdb1"]
             }
         }
-    }       
+    },
+    "hdbwritedown":{
+        "host":"localhost",
+        "port":7050,
+        "init":"cqhdbwritedown.q",
+        "cloptions":"",
+        "hdbwriteconfig":{
+            "schemafile":"schema.q",
+            "hdbdir":"/home/rahul/dev/kdb/test/mytick/hdb",
+            "hdbtplogdir":"/home/rahul/dev/kdb/test/mytick/hdbtplogs",
+            "completedtplogdir":"/home/rahul/dev/kdb/test/mytick/completedtplogs",
+            "tblsymfile":{"trade":"tsym"}
+        }
+    }     
 }

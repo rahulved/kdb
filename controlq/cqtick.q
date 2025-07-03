@@ -8,6 +8,9 @@ system "c 200 200";
 
 .u.schemafilePath:"schema.q";
 
+.u.getNextRollTime:{
+    .z.p+.u.tplogRollInterval-.z.p mod `long$.u.tplogRollInterval
+ };
 .cq.processConf:{[conf]
     if [not `tpconfig in key conf; 
         WARN "No tpconfig found in config.json. Using default values";
@@ -19,6 +22,7 @@ system "c 200 200";
     if [`tplogdir in key tpconf; .u.tplogDir:tpconf`tplogdir];
     if [`tplogprefix in key tpconf; .u.tplogPrefix:tpconf`tplogprefix];
     if [`tplogrollinterval in key tpconf; .u.tplogRollInterval:"N"$tpconf`tplogrollinterval];
+    .u.nextRollTime:.u.getNextRollTime[];
     INFO "Starting tick instance ",string[.cq.instance];
     INFO "TP log dir: ",.u.tplogDir;
     INFO "TP log prefix: ",.u.tplogPrefix;
@@ -63,20 +67,23 @@ system "l cqcommon.q";
 .u.tplogPath:`;
 
 .u.createTpLogFile:{   
-   .u.tplogPath: .Q.dd[`$":",.u.tplogDir;`$.u.tplogPrefix,(string[.z.d] except/ ".:"),(string[.z.t] except/ ".:"),".log"];   
+   .u.tplogPath: .Q.dd[`$":",.u.tplogDir;`$.u.tplogPrefix,"_",string[.cq.instance],"_",(string[.z.d] except/ ".:"),(string[.z.t] except/ ".:"),".log"];   
    .[.u.tplogPath;();:;()];
    .u.tph:hopen .u.tplogPath;   
    INFO "TP log file: ",string[.u.tplogPath],"\n";
  };
 
-.u.isFirstLogFile:1b;
 
 .u.checkTpLogfile:{
-    if [not count key .u.tplogPath; .u.tph:0Ni];
-    if [null[.u.tph] or (.u.isFirstLogFile and (`long$.z.p) mod ).z.p>.u.tplastFileOpenTime+.u.tplogRollInterval;
+    if [not count key .u.tplogPath; 
+        WARN "TP log file not found at [",string[.u.tplogPath],"]. Creating new one. Some writes may have been lost";
+        .u.tph:0Ni
+    ];
+    if [null[.u.tph] or .z.p>.u.nextRollTime;
         if [.u.tph>0; @[hclose;.u.tph;{0N!x}]];
         .u.createTpLogFile[];
         .u.tplastFileOpenTime:.z.p;
+        .u.nextRollTime:.u.getNextRollTime[];
         ];
 
  };
@@ -153,7 +160,7 @@ system "l cqcommon.q";
     /TBC - Actual monitoring - also check ss -m to check tcp buffer
  };
 
-.tm.addTimer[`.u.checkTpLogfile;enlist `; `timespan$00:00:02];
+.tm.addTimerRoundRuntime[`.u.checkTpLogfile;enlist `; `timespan$00:00:02];
 .tm.addTimer[`.u.checkBacklog;enlist `; `timespan$00:00:04];
 
 

@@ -96,7 +96,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 / sync hopen returns handle if successful or error otherwise
-.cq.hopen:{[ins; keepopen; onopen]    
+.cq.hopen:{[ins; keepopen; onopen]        
     th:.cq.hconns[ins];
     if [not null th`handle; :th`handle];
     if [not ins in key .cq.hconns;
@@ -107,10 +107,10 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 .cq.dohopen:{[ins]
-    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[x]];
+    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[ins]];
     th:.cq.hconns[ins];
     cfg:.cq.allconf[ins];
-    if [not all `host`port in key cfg; '"hopen - no config for instance ",string[x]];
+    if [not all `host`port in key cfg; '"hopen - no host/port for instance ",string[ins]];
     url:hsym `$cfg[`host],":",string[cfg`port];
     h:@[hopen;url;{[url; ins; e] '"Error opening connection to [",string[ins],"] = [",string[url],"] - ",e}[url;ins]];
     INFO "Connected to [",string[ins],"]@[",string[url],"]";
@@ -121,7 +121,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 .cq.hclose:{[ins]    
-    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[x]];    
+    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[ins]];    
     th:.cq.hconns[ins];
     h:th`handle;
     if [ins=`cqagent; '".cq.hclose - cannot close cqagent connection. Close handle,",string[th`handle]," directly instead if required"];
@@ -131,7 +131,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 .cq.h:{[ins]
-    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[x]];
+    if [not ins in key .cq.hconns; '"hopen - no config for instance ",string[ins]];
     .cq.hconns[ins]`handle
  };
 

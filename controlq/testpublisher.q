@@ -1,8 +1,11 @@
 .cq.processConf:{[conf]
+    if [not `fhconfig in key conf; '"No fhconfig found for instance [",string[.cq.instance],"]"];
+    conf:conf`fhconfig;
+    .fh.tps:`$conf`tps;
  };
 system "l cqcommon.q";
 
-pubintervalms:1000;
+pubintervalms:5000;
 
 roundprice:{%[floor 0.00005+10000*x;10000]};
 roundqty:{100+100*div[x;100]};
@@ -47,25 +50,28 @@ getTrades:{[n;quotes]
     trades
  };
 
+pubToTp:{[tp;t;d]
+    h:.cq.h[tp];
+    if [not null h; neg[h] (`.u.upd;t;d)];
+ };
 
-dopub:{
-    h:.cq.h[`tp1];
-    if [null h; :()];
-    
-    /if [null .p.tph; :()];
+dopub:{    
     nq:first 1+1?200;
     nt:first 1+1?50;
     quotes:getQuotes nq;
-    neg[h] (`.u.upd;`quote;value flip quotes);
-    neg[h] (`.u.upd;`trade;value flip getTrades[nt;quotes]);
+    pubToTp[;`quote;value flip quotes] each .fh.tps;
+    pubToTp[;`trade;value flip getTrades[nt;quotes]] each .fh.tps;
+    /neg[h] (`.u.upd;`quote;value flip quotes);
+    /neg[h] (`.u.upd;`trade;value flip getTrades[nt;quotes]);
  };
 
 
 
 
 
-.cq.hopen[`tp1;1b;`];
+.cq.asynchopen[;1b;`] each .fh.tps;
 
+.tm.addTimer[`dopub;enlist `; `timespan$pubintervalms*1e6];
 \
 /.p.tploc:`:localhost:5010;
 openTpConn:{
