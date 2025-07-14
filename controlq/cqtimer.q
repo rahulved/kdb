@@ -1,6 +1,7 @@
 .tm.granularityms:1000;
 
-.tm.timers:([] id:`long$(); name:`$(); fn:`$(); arglist:(); freq:(); lastrun:`timestamp$(); nextrun:`timestamp$(); roundruntime:`boolean$(); lastrunduration:`timespan$(); lasterror:());
+.tm.timers:([] id:`long$(); name:`$(); fn:(); arglist:(); freq:`timespan$(); lastrun:`timestamp$(); nextrun:`timestamp$(); roundruntime:`boolean$(); lastrunduration:`timespan$(); lasterror:());
+`.tm.timers insert (0j;`; :: ; :: ; 0Nn; 0Np; 0Wp; 0b; 0Nn; enlist "");
 
 .tm.id:0;
 
@@ -15,7 +16,7 @@
  };
 .tm.addTimerOnce:{[fn;arglist;nextruntime]
     .tm.id+:1;
-    `tm.timers upsert (.tm.id;`;fn;(),arglist;0Nn;0Np;nextruntime;0b;0Nn;enlist "");
+    `.tm.timers upsert (.tm.id;`;fn;(),arglist;0Nn;0Np;nextruntime;0b;0Nn;enlist "");
  };
 .tm.addTimerHelper:{[fn;arglist;freq; roundruntime]
     .tm.id+:1;
@@ -29,7 +30,7 @@
  };
 
 .tm.runTimers:{[]
-    toRun:select  from .tm.timers where nextrun<.z.p;
+    toRun:select  from .tm.timers where id>0, nextrun<.z.p;
     .tm.runTimer each toRun;
  };
 

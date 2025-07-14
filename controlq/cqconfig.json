@@ -23,6 +23,8 @@
         "cloptions":"",      
         "tpconfig":{
             "schemafile":"schema.q",
+            "batchsize":10,
+            "maxbatchtime":"00:00:01.000",
             "tplogdir":"/home/rahul/dev/kdb/test/mytick/tplogs",
             "tplogprefix":"tplog",
             "tplogrollinterval":"00:30:00"

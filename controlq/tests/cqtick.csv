@@ -1,0 +1,3 @@
+action,ms,bytes,lang,code
+before,0,0,q,\l tests/test_cqtick.q
+true,0,0,q,".t.testsub1[]"

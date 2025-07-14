@@ -5,7 +5,7 @@
  };
 system "l cqcommon.q";
 
-pubintervalms:5000;
+pubintervalms:2000;
 
 roundprice:{%[floor 0.00005+10000*x;10000]};
 roundqty:{100+100*div[x;100]};

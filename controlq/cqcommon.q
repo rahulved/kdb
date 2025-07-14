@@ -2,20 +2,25 @@ system "l log4q.q";
 
 .log4q.fm:"%p %c\t%f:%m\r\n";
 
+.cq.istesting:1b~.cq[`unittest];
+
 system "l cqtimer.q";
 
 .cq.myport:system "p";
 / Instance name and agent port are command line options
 /-------------------------------------------------------------------------
-.cq.clopts:.Q.opt .z.x;
-if [not `instance in key .cq.clopts; '"Instance not specified in command line (-instance <instance name>)"];
-.cq.instance:first `$.cq.clopts`instance;
-if [not `agentport in key .cq.clopts; '"Agent port not specified in command line (-agentport <port>)"];
-.cq.agentport:first "I"$.cq.clopts`agentport;
+.cq.instance:`;
 
-
+if [not .cq.istesting;
+    .cq.clopts:.Q.opt .z.x;
+    if [(not `instance in key .cq.clopts); '"Instance not specified in command line (-instance <instance name>)"];
+    .cq.instance:first `$.cq.clopts`instance;
+    if [(not `agentport in key .cq.clopts); '"Agent port not specified in command line (-agentport <port>)"];
+    .cq.agentport:first "I"$.cq.clopts`agentport;
+ ];
 .cq.init:{  
     INFO ".cq.init called";  
+
     configPath:"cqconfig.json";
     args:.Q.opt .z.x;
     if [`configpath in key args; if [0<count args`configpath; configPath:args`configpath]];
@@ -78,8 +83,8 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
 
 
 
-.cq.hconns:([instance:`$()] handle:`int$(); direction:`$(); isconnected:`boolean$(); disconnecttime:`timestamp$(); keepopen:`boolean$(); onopen:());
-`.cq.hconns upsert (`;0Ni; `; 0b; 0Np; 0b; ::);
+.cq.hconns:([instance:`$()] pid:`int$(); handle:`int$(); direction:`$(); isconnected:`boolean$(); disconnecttime:`timestamp$(); keepopen:`boolean$(); onopen:());
+`.cq.hconns upsert (`;0Ni;0Ni; `; 0b; 0Np; 0b; ::);
 /x - instance name from config
 /keepopen - if true, then try reconnecting if the connection is lost
 /onopen - alled each time the connection is opened
@@ -100,7 +105,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     th:.cq.hconns[ins];
     if [not null th`handle; :th`handle];
     if [not ins in key .cq.hconns;
-        `.cq.hconns upsert (ins;0Ni;`out;0b; 0Np; keepopen;onopen)
+        `.cq.hconns upsert (ins;0Ni;0Ni;`out;0b; 0Np; keepopen;onopen)
     ];
     .cq.dohopen[ins]
     /@[`.cq.dohopen;ins;{}]
@@ -114,7 +119,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     url:hsym `$cfg[`host],":",string[cfg`port];
     h:@[hopen;url;{[url; ins; e] '"Error opening connection to [",string[ins],"] = [",string[url],"] - ",e}[url;ins]];
     INFO "Connected to [",string[ins],"]@[",string[url],"]";
-    h@(`.cq.registerHandle;.cq.instance);
+    h@(`.cq.registerHandle;.cq.instance;.z.i);
     update handle:h, isconnected:1b, disconnecttime:0Np from `.cq.hconns where instance=ins;
     if [not null th`onopen; .[eval th`onopen;(ins;h);{[ins;e] '"Error calling onopen for instance ",string[ins]," - ",e}[ins]]];
     h
@@ -135,8 +140,8 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     .cq.hconns[ins]`handle
  };
 
-.cq.registerHandle:{[ins]
-    `.cq.hconns upsert (ins;.z.w;`in;1b;0Np;0b;0b);
+.cq.registerHandle:{[ins;pid]
+    `.cq.hconns upsert (ins;pid;.z.w;`in;1b;0Np;0b;0b);
  };
 
 .cq.attemptReconnect:{
@@ -172,6 +177,7 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
  };
 
 
+
 .cq.shutdown:{
     INFO "Shutting down instance ",string[.cq.instance];    
     h:.cq.agenth^.z.w;
@@ -185,11 +191,15 @@ if [not `agentport in key .cq.clopts; '"Agent port not specified in command line
     exit[0];
  };
 
-if [.cq.instance<>`cqagent;
-    INFO "Calling .cq.init for instance ",string[.cq.instance];
-    .cq.init[]
+if [not .cq.istesting; //only run init if we're not unit testing
+    if [(.cq.instance<>`cqagent); 
+        INFO "Calling .cq.init for instance ",string[.cq.instance];
+        .cq.init[]
+    ]
  ];
-
 .z.exit:{
     INFO "Received exit signal";
+    @[{if [not null .cq.agenth; neg[.cq.agenth] (`.cq.shutdownAck;.cq.instance;.z.p)];};`;{ERROR "Error sending shutdown to agent - ",x}];
+    INFO "Exiting";
  };
+

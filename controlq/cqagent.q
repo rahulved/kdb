@@ -14,7 +14,7 @@
          .cq.qexec:"q"
     ];       
 
-    .cq.cloptions:[`cloptions in key conf; conf`cloptions;""];
+    .cq.cloptions:$[`cloptions in key conf; conf`cloptions;""];
  };
 
 system "l cqcommon.q";
@@ -80,10 +80,15 @@ system "e 1";
   @[system; "kill -2 ",string[.cq.instances[ins][`pid]];{ERROR "Error interrupting instance ",string[ins]," - ",x}];
  };
 
-.cq.killInstance:{[ins]
-  if [not .cq.instances[ins][`pid]>0; INFO "Instance ",string[ins]," not running to kill"];
+.cq.killInstance:{[ins;pid]
+  if [(not null pid) and (not null .cq.instances[ins]`pid) and (pid<>.cq.instances[ins]`pid); 
+    INFO "New pid ",string[pid]," for instance ",string[ins], ". Not killing"; :()];
+  if [null .cq.instances[ins]`pid; INFO "Instance ",string[ins]," already stopped"; :()];
+  if [null pid; pid:.cq.instances[ins][`pid]];
+  if [not pid>0; INFO "Instance ",string[ins]," not running to kill"; :()];
   INFO "Killing instance [",string[ins], "], pid=[",string[.cq.instances[ins][`pid]],"]";
-  @[system; "kill -9 ",string[.cq.instances[ins][`pid]];{ERROR "Error killing instance ",string[ins]," - ",x}];
+  @[system; "kill -9 ",string[.cq.instances[ins][`pid]];{[ins;e] ERROR "Error killing instance ",string[ins]," - ",e}];
+  .cq.resetInstance[ins];
  };
 
 .cq.stopInstance:{[ins]
@@ -92,11 +97,15 @@ system "e 1";
   if [not .cq.instances[ins][`handle]>0; '"Instance ",string[ins]," not connected"];
   INFO "Shutting down instance ",string[ins];
   h:.cq.instances[ins][`handle];
-  update shutdownreqtime:.z.p from `.cq.instances where instance=ins;
-  .tm.addTimerOnce[`.cq.killInstance; enlist ins; .z.p+`timespan$00:00:10];
+  update shutdownreqtime:.z.p, shutdownacktime:0Np from `.cq.instances where instance=ins;
+  .tm.addTimerOnce[`.cq.killInstance; (ins; .cq.instances[ins]`pid); .z.p+`timespan$00:00:10];  / we include the pid here in case its started again manually before the agent tries to kill the process
   neg[h] (`.cq.shutdown;`)
  };
 
+.cq.stopAllInstances:{
+  INFO "Shutting down all instances";
+  @[.cq.stopInstance;;{}] each (key[.cq.instances]`instance) except `cqagent;
+  };
 
 .cq.getCmdLine:{[ins; port]   
     if [not ins in key .cq.allconf; '"No config for instance ",string[ins]];
@@ -112,7 +121,7 @@ system "e 1";
     cmdline:.cq.getCmdLine[ins; port];    
     INFO "Starting instance [",string[ins],"] on port [",string[port],"] with command line [",cmdline,"]";
     system cmdline;
-    update starttime:.z.p from `.cq.instances where instance=ins;
+    update starttime:.z.p, registertime:0Np from `.cq.instances where instance=ins;
  };
 
 .cq.agentregister:{[ins;pd;hst;prt;ts]
@@ -126,7 +135,27 @@ system "e 1";
   update lastheartbeat:.z.p, handle:.z.w, pid:pd, lagtime:lag from `.cq.instances where instance=ins;
   };
 
+.cq.getssinfo:{[ins;port;pid]
+    s:@[system;"ss -pim -t state established dst :",string[port]," | grep \"pid\"";""];
+    if [not count s; :()];
+
+    s1:update process:`$first each info, srcpid:"J"$("=" vs/: info@\:1)@\:1 from
+        update "J"$sendq, "J"$recvq, 
+            info:("," vs/: (":" vs/: info)@\:1) except\:\:/ "()\""
+            from flip `sendq`recvq`src`dst`info!flip (" " vs/: s) except\: enlist "";
+
+    s1:update time:.z.p, dstpid:pid, dstinstance:ins, dstport:port from s1 lj `srcpid xkey select srcpid:pid, srcinstance:instance, srcport:port from .cq.instances where not null pid;
+    s1
+  };
+
+.cq.ss:();
+.cq.getAllSSInfo:{
+  .cq.ss,:-1000 sublist (,/) (.cq.getssinfo .) each flip value exec distinct instance, port,pid from .cq.instances where not null port, instance<>`cqagent
+ };
 
 .cq.init[];
 INFO "Loading instances";
 .cq.loadInstances[];
+
+
+.tm.addTimer[`.cq.getAllSSInfo;`;`timespan$00:00:05];
