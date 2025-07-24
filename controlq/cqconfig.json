@@ -92,10 +92,12 @@
         "init":"cqhdbwritedown.q",
         "cloptions":"",
         "hdbwriteconfig":{
+            "hdbcompression":"17 2 6",
             "schemafile":"schema.q",
             "hdbdir":"/home/rahul/dev/kdb/test/mytick/hdb",
             "hdbtplogdir":"/home/rahul/dev/kdb/test/mytick/hdbtplogs",
             "completedtplogdir":"/home/rahul/dev/kdb/test/mytick/completedtplogs",
+            "errortplogdir":"/home/rahul/dev/kdb/test/mytick/errortplogs",
             "tblsymfile":{"trade":"tsym"}
         }
     }     
